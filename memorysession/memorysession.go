@@ -3,6 +3,7 @@ package memorysession
 import (
 	"crypto/rand"
 	"encoding/base64"
+	"golanger.com/utils"
 	"io"
 	"net/http"
 	"net/url"
@@ -78,15 +79,7 @@ func (s *SessionManager) Set(rw http.ResponseWriter, req *http.Request) {
 
 		if lsess == 0 {
 			s.Clear(sessionSign)
-			bCookie := &http.Cookie{
-				Name:     CookieName,
-				Value:    "",
-				Path:     "/",
-				Expires:  time.Now().Add(-3600),
-				HttpOnly: true,
-			}
-
-			http.SetCookie(rw, bCookie)
+			utils.SetCookie(rw, nil, CookieName, "", -3600)
 		}
 	}
 }
@@ -113,14 +106,7 @@ func (s *SessionManager) new(rw http.ResponseWriter) string {
 	}
 	s.mutex.Unlock()
 
-	bCookie := &http.Cookie{
-		Name:     CookieName,
-		Value:    url.QueryEscape(sessionSign),
-		Path:     "/",
-		HttpOnly: true,
-	}
-
-	http.SetCookie(rw, bCookie)
+	utils.SetCookie(rw, nil, CookieName, sessionSign, 0, "/", "", true)
 
 	return sessionSign
 }

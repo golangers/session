@@ -24,6 +24,7 @@ import (
 	//"errors"
 	//(1)
 	"golanger.com/log"
+	"golanger.com/utils"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -110,7 +111,7 @@ func readFile(filePath string) ([]byte, error) {
 
 func writeFile(filePath string, content []byte) error {
 	var tryed bool
-	TRY:
+TRY:
 	//(1)
 	//由于跨程序共享session使用的是Gob，在session中有用户自定义类型时，如果另一程序未预先注册此UserType,会报错
 	//因此，暂不考虑跨程序共享session时的资源互斥问题，顾以下代码先注释
@@ -203,15 +204,7 @@ func New(cookieName string, expires int, sessionDir string, timerDuration string
 
 func (s *SessionManager) new(rw http.ResponseWriter) string {
 	sessionSign := getSessionSign()
-
-	bCookie := &http.Cookie{
-		Name:     s.CookieName,
-		Value:    url.QueryEscape(sessionSign),
-		Path:     "/",
-		HttpOnly: true,
-	}
-
-	http.SetCookie(rw, bCookie)
+	utils.SetCookie(rw, nil, s.CookieName, sessionSign, 0, "/", "", true)
 
 	return sessionSign
 }

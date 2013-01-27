@@ -20,6 +20,7 @@ import (
 	"encoding/binary"
 	"encoding/gob"
 	"golanger.com/log"
+	"golanger.com/utils"
 	"net/http"
 	"strings"
 	"time"
@@ -158,25 +159,12 @@ func (s *SessionManager) Set(session map[string]interface{}, rw http.ResponseWri
 
 	if len(session) == 0 {
 		if origCookieVal != "" {
-			cookie := &http.Cookie{
-				Name:    s.CookieName,
-				Value:   "",
-				Path:    "/",
-				Expires: time.Now().Add(-3600),
-			}
-
-			http.SetCookie(rw, cookie)
+			utils.SetCookie(rw, nil, s.CookieName, "", -3600)
 		}
 	} else {
 		if encoded, err := encodeCookie(session, s.key, s.iv); err == nil {
 			if encoded != origCookieVal {
-				cookie := &http.Cookie{
-					Name:  s.CookieName,
-					Value: encoded,
-					Path:  "/",
-				}
-
-				http.SetCookie(rw, cookie)
+				utils.SetCookie(rw, nil, s.CookieName, encoded, 0, "/")
 			}
 		}
 	}
