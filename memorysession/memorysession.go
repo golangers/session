@@ -6,7 +6,6 @@ import (
 	"golanger.com/utils"
 	"io"
 	"net/http"
-	"net/url"
 	"sync"
 	"time"
 )
