@@ -15,10 +15,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 
-Golanger Web Framework
+Golanger Session
 =======================================================================
 
-Golanger is a lightweight framework for writing web applications in Go. 
+Golanger is a lightweight framework for writing web applications in Go.
 
 */
 
