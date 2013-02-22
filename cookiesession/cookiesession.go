@@ -110,9 +110,10 @@ func decodeCookie(encodedCookie string, key, iv []byte) (map[string]interface{},
 }
 
 type SessionManager struct {
-	CookieName string
-	key        []byte
-	iv         []byte
+	CookieName   string
+	CookieDomain string
+	key          []byte
+	iv           []byte
 }
 
 func New(cookieName, key string) *SessionManager {
@@ -163,7 +164,7 @@ func (s *SessionManager) Set(session map[string]interface{}, rw http.ResponseWri
 	} else {
 		if encoded, err := encodeCookie(session, s.key, s.iv); err == nil {
 			if encoded != origCookieVal {
-				utils.SetCookie(rw, nil, s.CookieName, encoded, 0, "/")
+				utils.SetCookie(rw, nil, s.CookieName, encoded, 0, "/", s.CookieDomain, true)
 			}
 		}
 	}

@@ -12,6 +12,7 @@ import (
 
 type SessionManager struct {
 	CookieName    string
+	CookieDomain  string
 	rmutex        sync.RWMutex
 	mutex         sync.Mutex
 	sessions      map[string][2]map[string]interface{}
@@ -19,7 +20,7 @@ type SessionManager struct {
 	timerDuration time.Duration
 }
 
-func New(cookieName string, expires int, timerDuration string) *SessionManager {
+func New(cookieName, cookieDomain string, expires int, timerDuration string) *SessionManager {
 	if cookieName == "" {
 		cookieName = "GoLangerSession"
 	}
@@ -38,6 +39,7 @@ func New(cookieName string, expires int, timerDuration string) *SessionManager {
 
 	s := &SessionManager{
 		CookieName:    cookieName,
+		CookieDomain:  cookieDomain,
 		sessions:      map[string][2]map[string]interface{}{},
 		expires:       expires,
 		timerDuration: dTimerDuration,
@@ -67,10 +69,10 @@ func (s *SessionManager) Get(rw http.ResponseWriter, req *http.Request) map[stri
 
 func (s *SessionManager) Set(rw http.ResponseWriter, req *http.Request) {
 	s.rmutex.RLock()
-	CookieName := s.CookieName
+	cookieName := s.CookieName
 	s.rmutex.RUnlock()
 
-	if c, err := req.Cookie(CookieName); err == nil {
+	if c, err := req.Cookie(cookieName); err == nil {
 		sessionSign := c.Value
 		s.rmutex.RLock()
 		lsess := len(s.sessions[sessionSign][1])
@@ -78,7 +80,7 @@ func (s *SessionManager) Set(rw http.ResponseWriter, req *http.Request) {
 
 		if lsess == 0 {
 			s.Clear(sessionSign)
-			utils.SetCookie(rw, nil, CookieName, "", -3600)
+			utils.SetCookie(rw, nil, cookieName, "", -3600)
 		}
 	}
 }
@@ -92,7 +94,8 @@ func (s *SessionManager) Len() int64 {
 func (s *SessionManager) new(rw http.ResponseWriter) string {
 	timeNano := time.Now().UnixNano()
 	s.rmutex.RLock()
-	CookieName := s.CookieName
+	cookieName := s.CookieName
+	cookieDomain := s.CookieDomain
 	sessionSign := s.sessionSign()
 	s.rmutex.RUnlock()
 
@@ -105,7 +108,7 @@ func (s *SessionManager) new(rw http.ResponseWriter) string {
 	}
 	s.mutex.Unlock()
 
-	utils.SetCookie(rw, nil, CookieName, sessionSign, 0, "/", "", true)
+	utils.SetCookie(rw, nil, cookieName, sessionSign, 0, "/", cookieDomain, true)
 
 	return sessionSign
 }

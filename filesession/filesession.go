@@ -163,12 +163,13 @@ func getSessionSign() string {
 
 type SessionManager struct {
 	CookieName    string
+	CookieDomain  string
 	expires       int
 	sessionDir    string
 	timerDuration time.Duration
 }
 
-func New(cookieName string, expires int, sessionDir string, timerDuration string) *SessionManager {
+func New(cookieName, cookieDomain string, expires int, sessionDir string, timerDuration string) *SessionManager {
 	if cookieName == "" {
 		cookieName = "GoLangerSession"
 	}
@@ -191,6 +192,7 @@ func New(cookieName string, expires int, sessionDir string, timerDuration string
 
 	s := &SessionManager{
 		CookieName:    cookieName,
+		CookieDomain:  cookieDomain,
 		expires:       expires,
 		sessionDir:    sessionDir,
 		timerDuration: dTimerDuration,
@@ -203,7 +205,7 @@ func New(cookieName string, expires int, sessionDir string, timerDuration string
 
 func (s *SessionManager) new(rw http.ResponseWriter) string {
 	sessionSign := getSessionSign()
-	utils.SetCookie(rw, nil, s.CookieName, sessionSign, 0, "/", "", true)
+	utils.SetCookie(rw, nil, s.CookieName, sessionSign, 0, "/", s.CookieDomain, true)
 
 	return sessionSign
 }
