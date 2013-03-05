@@ -116,7 +116,7 @@ type SessionManager struct {
 	iv           []byte
 }
 
-func New(cookieName, key string) *SessionManager {
+func New(cookieName, key, cookieDomain string) *SessionManager {
 	if cookieName == "" {
 		cookieName = "GoLangerCookieSession"
 	}
@@ -129,10 +129,15 @@ func New(cookieName, key string) *SessionManager {
 	keySha1.Write([]byte(key))
 	sum := keySha1.Sum(nil)
 	return &SessionManager{
-		CookieName: cookieName,
-		key:        sum[:16],
-		iv:         sum[4:],
+		CookieName:   cookieName,
+		CookieDomain: cookieDomain,
+		key:          sum[:16],
+		iv:           sum[4:],
 	}
+}
+
+func (s *SessionManager) SetCookieExpires(session map[string]interface{}, cookieExpires int) {
+	session["__cookieExpires"] = cookieExpires
 }
 
 func (s *SessionManager) Get(req *http.Request) map[string]interface{} {
@@ -162,9 +167,14 @@ func (s *SessionManager) Set(session map[string]interface{}, rw http.ResponseWri
 			utils.SetCookie(rw, nil, s.CookieName, "", -3600)
 		}
 	} else {
+		var cookieExpires int
+		if ce, ok := session["__cookieExpires"].(int); ok {
+			cookieExpires = ce
+		}
+
 		if encoded, err := encodeCookie(session, s.key, s.iv); err == nil {
 			if encoded != origCookieVal {
-				utils.SetCookie(rw, nil, s.CookieName, encoded, 0, "/", s.CookieDomain, true)
+				utils.SetCookie(rw, nil, s.CookieName, encoded, cookieExpires, "/", s.CookieDomain, true)
 			}
 		}
 	}
